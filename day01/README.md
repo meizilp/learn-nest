@@ -1,13 +1,13 @@
 # nestjs 入门
 
-创建工程：
+1. 创建工程：
 ```sh
 npm init
 tsc --init
 npm i --save @nestjs/core @nestjs/common rxjs reflect-metadata @types/node
 ```
 
-修改tsconfig.json文件
+2. 修改tsconfig.json文件
 ```json
 {
   "compilerOptions": {
@@ -25,7 +25,7 @@ npm i --save @nestjs/core @nestjs/common rxjs reflect-metadata @types/node
 }
 ```
 
-编写app.controller.ts
+3. 编写app.controller.ts
 ```ts
 import { Get, Controller } from "@nestjs/common";
 
@@ -38,7 +38,7 @@ export class AppController {
 }
 ```
 
-编写app.module.ts
+4. 编写app.module.ts
 ```ts
 import { Module } from "@nestjs/common";
 import { AppController } from "./app.controller";
@@ -49,7 +49,7 @@ import { AppController } from "./app.controller";
 export class ApplicationModule { }
 ```
 
-编写main.ts
+5. 编写main.ts
 ```ts
 import { NestFactory } from "@nestjs/core";
 import { ApplicationModule } from "./app.module";
@@ -62,6 +62,6 @@ async function bootstrap() {
 bootstrap();
 ```
 
-编译：tsc
-运行：node main.j
-验证：浏览器访问 localhost:3000
+6. 编译：`tsc`
+7. 运行：`node main.js`
+8. 验证：浏览器访问 <localhost:3000>
