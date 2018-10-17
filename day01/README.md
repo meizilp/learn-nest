@@ -52,8 +52,7 @@ export class ApplicationModule { }
 5. 编写main.ts
 ```ts
 import { NestFactory } from "@nestjs/core";
-import { ApplicationModule } from "./app.module";
-
+import { ApplicationModule } from "./app.
 async function bootstrap() {
     const app = await NestFactory.create(ApplicationModule);    //工厂函数使用给定的函数创建实例
     await app.listen(3000);
@@ -65,3 +64,9 @@ bootstrap();
 6. 编译：`tsc`
 7. 运行：`node main.js`
 8. 验证：浏览器访问 <localhost:3000>
+
+## 总结
+
+1. 创建实例需要一个Module；
+2. Module中引用了Controller；
+3. Controller对请求进行响应。
