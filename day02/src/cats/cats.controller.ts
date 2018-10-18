@@ -1,4 +1,5 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body } from '@nestjs/common';
+import { CreateCatDto } from './create-cat.dto';
 
 @Controller('cats')
 export class CatsController {
@@ -18,5 +19,13 @@ export class CatsController {
             }
         }
         return { id: 0, name: 'not exist' };
+    }
+
+    @Post()
+    create(@Body() newCat: CreateCatDto) {
+        // tslint:disable-next-line:no-console
+        console.log(newCat);
+        this.cats.push(newCat);
+        return newCat;
     }
 }

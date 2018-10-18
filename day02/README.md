@@ -165,3 +165,22 @@ export class CatsController {
     5. 如果修改了代码，实例会重启创建并等待运行，并且VSCODE也会断开连接，此时要再次按下`F5`，再按下工具条中的运行。
 
 4. 增加POST方法的响应
+
+    1. 创建对象数据传输类'/src/cats/create-cat.dto.ts'
+        ```ts
+        export class CreateCatDto {
+            readonly id: number;
+            readonly name: string;
+        }
+        ```
+    2. 控制器增加POST方法的响应
+        ```ts
+         @Post()
+        create(@Body() newCat: CreateCatDto) {
+            this.cats.push(newCat);
+            return newCat;
+        }
+        ```
+        BODY中传过来的数据会按照类中定义的成员完成格式化。
+
+    通过Postman以x-www-form-urlencoded方式发送一个对象可以试试。
