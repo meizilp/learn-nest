@@ -89,15 +89,15 @@ CREATE /src/cats/cats.controller.ts (97 bytes)
 UPDATE /src/app.module.ts (322 bytes)
 ```
 
-2. 控制器初始代码：一个修饰符修饰的空类
+* 控制器初始代码：一个修饰符修饰的空类
 ```ts
 import { Controller } from '@nestjs/common';
 
-@Controller('cats')     //控制器响应的路由路径
+@Controller('cats')     //控制器响应的路由路径.'/cats'
 export class CatsController {}
 ```
 
-3. app.module.ts中的更新，增加了新控制器`CatsController`的声明
+* app.module.ts中的更新，增加了新控制器`CatsController`的声明
 ```ts
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
@@ -112,3 +112,56 @@ import { CatsController } from './cats/cats.controller';
 export class AppModule {}
 ```
 
+2. 控制器中增加对路由路径和Get方法的响应
+
+* '/cats'根路径'Get'
+```ts
+import { Controller, Get } from '@nestjs/common';
+
+@Controller('cats')
+export class CatsController {
+
+    cats = [{ id: 100, name: 'Garfield' }, { id: 101, name: 'Tom' }];
+
+    @Get()
+    findAll() {
+        return this.cats;
+    }
+}
+```
+
+* '/cats/:id' 。当使用/cats/100类似请求时，会获取制定id对象。
+```ts
+@Get(':id')
+    findOne(@Param() param) {
+        for (const cat of this.cats) {
+            if (cat.id === +param.id) {
+                return cat;     //可以直接返回对象，会转为json
+            }
+        }
+        return { id: 0, name: 'not exist' };
+    }
+```
+
+3. 运行调试
+
+    1. 创建实例并等待运行：`npm run start:debug`
+    2. 在VSCODE中按下`F5`，第一次会提示配置调试文件
+        ```json
+        {
+            "version": "0.2.0",
+            "configurations": [
+                {
+                    "type": "node",
+                    "request": "attach",
+                    "name": "调试程序",
+                    "port": 9229
+                }
+            ]
+        }
+        ```
+    3. 按下工具条中的运行，此时实例才能响应请求。
+    4. 断点等直接在VSCODE中操作即可。
+    5. 如果修改了代码，实例会重启创建并等待运行，并且VSCODE也会断开连接，此时要再次按下`F5`，再按下工具条中的运行。
+
+4. 增加POST方法的响应
