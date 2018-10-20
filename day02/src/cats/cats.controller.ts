@@ -23,8 +23,6 @@ export class CatsController {
 
     @Post()
     create(@Body() newCat: CreateCatDto) {
-        // tslint:disable-next-line:no-console
-        console.log(newCat);
         this.cats.push(newCat);
         return newCat;
     }
