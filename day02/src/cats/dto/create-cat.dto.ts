@@ -1,4 +1,4 @@
 export class CreateCatDto {
-  readonly id: number;
+  readonly age: number;
   readonly name: string;
 }
