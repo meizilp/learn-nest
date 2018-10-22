@@ -20,6 +20,6 @@ export class CatsController {
 
     @Post()
     create(@Body() newCatDto: CreateCatDto) {
-        return this.catsService.create(new Cat(newCatDto));
+        return this.catsService.create(newCatDto);
     }
 }

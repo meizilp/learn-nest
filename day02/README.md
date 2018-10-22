@@ -184,3 +184,94 @@ export class CatsController {
         BODY中传过来的数据会按照类中定义的成员完成格式化。
 
     通过Postman以x-www-form-urlencoded方式发送一个对象可以试试。
+
+    ## 服务
+
+    对于请求的逻辑业务应当由服务来处理，通过依赖注入的方式加载进入Controller来使用。
+
+    1. 创建服务
+    ```sh
+    nest g service cats/cats    # 和控制器在同一个目录
+    CREATE /src/cats/cats.service.spec.ts (442 bytes)
+    CREATE /src/cats/cats.service.ts (88 bytes)
+    UPDATE /src/app.module.ts (386 bytes)
+    ```
+    cats.service.ts : 定义了一个可以被注入的空类
+    ```ts
+    import { Injectable } from '@nestjs/common';
+
+    @Injectable()
+    export class CatsService {}
+    ```
+    app.module.ts : 增加了CatsService的声明
+    ```ts
+    @Module({
+        imports: [],
+        controllers: [AppController, CatsController],
+        providers: [AppService, CatsService],
+    })
+    export class AppModule {}
+    ```
+
+    2. 业务逻辑实现
+
+        1. cats.service.ts: 提供各种接口给Controller使用。
+        ```ts
+        import { Injectable } from '@nestjs/common';
+        import { Cat } from './interfaces/cat.interface';
+
+        @Injectable()
+        export class CatsService {
+            private readonly cats: Cat[] = [];
+
+            findAll() {
+                return this.cats;
+            }
+
+            findOne(id: number) {
+                for (const cat of this.cats) {
+                    if (cat.id === id) {
+                        return cat;
+                    }
+                }
+                return {};
+            }
+
+            create(newCatDto: CreateCatDto) {
+                // 不解构dto，这样当dto结构发生变化时不影响此处代码。
+                const cat = new Cat(newCatDto);
+                this.cats.push(cat);
+                return cat.id;
+            }
+        }
+        ```
+        2. cats.controller.ts :
+        ```ts
+        import { Controller, Get, Param, Post, Body } from '@nestjs/common';
+        import { CreateCatDto } from './dto/create-cat.dto';
+        import { Cat } from './interfaces/cat.interface';
+        import { CatsService } from './cats.service';
+
+        @Controller('cats')
+        export class CatsController {
+
+            constructor(private readonly catsService: CatsService) { }
+
+            @Get()
+            findAll() {
+                return this.catsService.findAll();
+            }
+
+            @Get(':id')
+            findOne(@Param('id') id) {
+                return this.catsService.findOne(+id);
+            }
+
+            @Post()
+            create(@Body() newCatDto: CreateCatDto) {
+                return this.catsService.create(newCatDto); 
+            }
+        }
+        ```
+        3. create-cat.dto.ts : 移动到src/cats/dto目录。
+        4. cat.interface.ts ：cat类的实现，可以直接通过createDto对象创建。

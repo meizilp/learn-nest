@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Cat } from './interfaces/cat.interface';
+import { CreateCatDto } from './dto/create-cat.dto';
 
 @Injectable()
 export class CatsService {
@@ -18,8 +19,9 @@ export class CatsService {
         return {};
     }
 
-    create(newCat: Cat) {
-        this.cats.push(newCat);
-        return newCat.id;
+    create(newCatDto: CreateCatDto) {
+        const cat = new Cat(newCatDto);
+        this.cats.push(cat);
+        return cat.id;
     }
 }
