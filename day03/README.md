@@ -41,3 +41,7 @@
     * 根模块的代码中没有使用子模块的Provider，所以子模块不需要exports。
     * Controller是不能被exports的。
 
+## 异常过滤器
+
+1. HttpException类：定义在@nestjs/common中，当有异常时，可以抛出。
+

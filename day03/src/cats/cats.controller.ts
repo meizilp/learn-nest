@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Body } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, Delete, HttpException, HttpStatus } from '@nestjs/common';
 import { CreateCatDto } from './dto/create-cat.dto';
 import { CatsService } from './cats.service';
 
@@ -20,5 +20,10 @@ export class CatsController {
     @Post()
     create(@Body() newCatDto: CreateCatDto) {
         return this.catsService.create(newCatDto);
+    }
+
+    @Delete()
+    delete() {
+        throw new HttpException('禁止删除', HttpStatus.FORBIDDEN);
     }
 }
