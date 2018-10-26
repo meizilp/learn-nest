@@ -26,6 +26,8 @@ export class Photo {
         photo.name = createDto.name;
         photo.filename = createDto.filename;
         photo.description = createDto.description;
+        photo.views = 0;
+        photo.isPublished = false;
         return photo;
     }
 }

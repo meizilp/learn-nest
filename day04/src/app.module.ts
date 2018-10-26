@@ -7,6 +7,7 @@ import { PhotoModule } from './photo/photo.module';
     type: 'sqlite',
     database: './main.db',
     entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+    synchronize: true,
   }), PhotoModule],
 })
 export class AppModule { }
