@@ -8,6 +8,7 @@ import { PhotoModule } from './photo/photo.module';
     database: './main.db',
     entities: [__dirname + '/../**/*.entity{.ts,.js}'],
     synchronize: true,
+    logging: true,
   }), PhotoModule],
 })
 export class AppModule { }

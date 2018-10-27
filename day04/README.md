@@ -31,35 +31,16 @@ nest g co photo
 nest g s photo photo # 创建服务时要带上path，否则创建到根目录了。
 ```
 
+修改photo.module.ts, imports在当前模块注册typeorm模块，如果不注册，service中会DI失败
+```ts
+```
+
 定义photo的entity：photo.entity.ts
 ```ts
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
-
-@Entity()
-export class Photo {
-    @PrimaryGeneratedColumn()
-    id: number;
-
-    @Column({ length: 500 })
-    name: string;
-
-    @Column('text')
-    description: string;
-
-    @Column()
-    filename: string;
-
-    @Column('int')
-    views: number;
-
-    @Column()
-    isPublished: boolean;
 }
 ```
 * TypeOrmModule初始化的时候会构造一个Entity对象，所以Entity的构造函数必须是无参数或者处理参数未定义时的情况。
 * 所以dto、entity、逻辑对象分开定义最好，避免互相干扰。
-
-修改photo.module.ts, imports在当前模块注册typeorm模块，如果不注册会service中会DI失败
 
 修改photo.service.ts，提供photo数据的增删改查功能：
 ```ts
@@ -73,3 +54,55 @@ export class Photo {
 
 运行查看效果：
 `npm run start`
+
+## TypeORM
+
+参见<http://typeorm.io>
+
+配置文件：ormconfig.json
+
+    * type:必须
+    * name:默认值default，多个连接时需要自己命名
+    * entities:要使用此连接的entity代码路径，找到entity代码后，typeorm库会初始化。
+    * migrations：数据库升级的代码
+    * logging:设置为true后可以在控制台看到执行的sql语句。
+    * maxQueryExecutionTime：查询最大执行时间，超时则记录查询。可以用于优化。
+    * dropSchema:每次程序启动时都清空数据库（用于调试）。
+    * synchronize：每次程序启动自动创建数据库以及表（便于调试，但不要用于生产环境）
+
+Entity:
+
+  * @Entiy()装饰器来修饰类。
+  * 必须有一个主列。
+  * 必须在连接选项中注册，因为typeorm需要读取装饰器提供的信息。
+  * 如果有构造函数，其参数必须是可选的。
+   
+  列：@Column()装饰器修饰类。
+
+  1. 主列：@PrimaryColumn()、自增主列:@PrimaryGeneratedColumn()、uuid主列@PrimaryGeneratedColumn（"uuid")，可以有多个主列。
+  2. save以及find时都是以id或者ids列为准的。
+  3. 特殊列：@CreateDateColumn()、@UpdateDateColumn()、@VersionColumn()
+  4. 列类型：可以指定更精确的类型。
+      * 常见的：int、text等等。不同的数据库不同。
+      * 简单数组类型：数组元素如果值中不包含逗号，可以存到一个列中，指定类型@Column("simple-array")。
+      * 简单json类型： @Column("simple-json")。可以把一个对象以json形式存储在一个列中，并通过JSON.parse解析为原来的对象。
+  5. 类选项：可以指定type、length、name、nullable、readonly、default、unique等。
+
+  Entity的继承：
+    把公共列放到一个类中，但是这个类不要用装饰符修饰。其他子类extends此类，并用@Entity修饰。
+
+  Entity的嵌入：
+    通过嵌入可以解决所有的字段都被迫展开在一层的问题，使得及结构更清晰。被嵌入的类不要用修饰符修饰，只要列仍然正常的修饰即可。然后通过@Column(type => 被嵌入的类名称)，来说明这列是嵌入的，实际上是多列。
+
+  分离Entity的定义：
+    单独的用代码文件定义Entity的Schema，cli也能处理。不过看上去似乎挺麻烦的。
+    
+
+  树结构的存储：有4中方案可以采用。节点都要同样的Entity？
+    <https://www.slideshare.net/billkarwin/models-for-hierarchical-data> 69页做了对比
+    <https://schinckel.net/2014/09/13/long-live-adjacency-lists/>
+    Adjacency List: 最简单。但对于获取子树不利。
+    Path Enumeration:对写入不利。
+    Nested Sets:只能有一个根节点。写入也不利。
+    Closure Table:需要两个表，空间相对需要比较大。
+    TypeOrm对直接操作tree做了一下封装，以便于使用。

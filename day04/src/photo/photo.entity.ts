@@ -15,10 +15,10 @@ export class Photo {
     @Column()
     filename: string;
 
-    @Column('int')
+    @Column('int', { default: 0 })
     views: number;
 
-    @Column()
+    @Column({ default: false })
     isPublished: boolean;
 
     static create(createDto: CreatePhotoDto) {
@@ -26,8 +26,6 @@ export class Photo {
         photo.name = createDto.name;
         photo.filename = createDto.filename;
         photo.description = createDto.description;
-        photo.views = 0;
-        photo.isPublished = false;
         return photo;
     }
 }
