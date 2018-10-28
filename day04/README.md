@@ -101,8 +101,81 @@ Entity:
   树结构的存储：有4中方案可以采用。节点都要同样的Entity？
     <https://www.slideshare.net/billkarwin/models-for-hierarchical-data> 69页做了对比
     <https://schinckel.net/2014/09/13/long-live-adjacency-lists/>
-    Adjacency List: 最简单。但对于获取子树不利。
+    Adjacency List: 最简单。但对于获取子树不利。如果树深度不深可以就可以回避了。
     Path Enumeration:对写入不利。
     Nested Sets:只能有一个根节点。写入也不利。
     Closure Table:需要两个表，空间相对需要比较大。
     TypeOrm对直接操作tree做了一下封装，以便于使用。
+
+关系：Entity之间可以有一对一、一对多、多对一、多对多的关系，并且可以是单向或者双向的。
+    关系创建时可以指定选项：
+        eager：对象加载时是否把关联的字段也自动加载填充了。
+        cascade：对象存储时是否把关联的资源也自动存储了。
+        onDelete：当指向的对象被删除时，外键如何处理。
+        primary：关系列是否设置为一个主列。
+        nullable：关系列是否可以为空。
+    一对一：@OneToOne
+        单向：
+            ```ts
+            @OneToOne(type => Profile)
+            @JoinColumn()
+            profile: Profile;
+            ```
+            * @OneToOne：type是个占位符，函数返回Profile类型，表示指向的是个Profile类型的对象；
+            * @JoinColumn：表示这边是关系的拥有者。这个装饰符只能用在关系中其中一边的Entity中，这个装饰符定义了关系的名称，此处默认的是字段名profile，并且数据库中会在此Entity的表中增加一列外键指向目标Entity。
+            加载对象：
+            ```ts
+            const userRepository = connection.getRepository(User);
+            const users = await userRepository.find({ relations: ["profile"] });
+            ```
+            * 传递了关系名称，才会加载相应的关系对象到字段中。或者设置eager为true。
+        双向：
+            两个Entity中都要用@OneToOne，并且参数要建立两个关系。
+            Entity 'Profile':
+            ```ts
+            @OneToOne(type => User, user => user.profile) // 本字段指向User对象；user对象中的profile字段指向本对象。
+            user: User;
+            ```
+            Entity 'User':
+            ```ts
+            @OneToOne(type => Profile, profile => profile.user) //本字段指向Profile对象，profile对象中的user字段指向本对象。
+            @JoinColumn()
+            profile: Profile;
+            ```
+    多对一和一对多：@ManyToOne @OneToMany
+            Photo Entity:
+            ```ts
+            @ManyToOne(type => User, user => user.photos) //本字段指向User对象，user中的photos字段指向本对象。
+            user: User;
+            ```
+            User Entity:
+            ```ts
+            @OneToMany(type => Photo, photo => photo.user) //本字段指向Photo对象，photo中的user字段指向本对象
+            photos: Photo[];
+            ```
+            @OneToMany必须和@ManyToOne搭配使用。包含有@ManyToOne的Entity拥有此关系（命名关系名称以及创建外键，不必再用@JoinColumn声明哪个是主。）
+    多对多：@ManyToMany
+            单向时只要在其中的一个Entity中放入指令即可，TypeOrm会创建一个关联表记录两个Entity之间的关系。
+            ```ts
+            @ManyToMany(type => Category)
+            @JoinTable()
+            categories: Category[];
+            ```
+
+            双向时，两个Entity中都要放入指令，
+            Category Entity:
+            ```ts
+            @ManyToMany(type => Question, question => question.categories)
+            questions: Question[];
+            ```
+            Question Entity:
+            ```ts
+            @ManyToMany(type => Category, category => category.questions)
+            @JoinTable()
+            categories: Category[];
+            ```
+            只能在其中一个Entity中使用@JoinTable()
+    Eager和lazy关系：
+        Eager设置为true时，这样的关系每次都自动把关联的Entity从数据库中加载。无需额外操作。
+        Lazy关系是通过Promise实现，当要访问字段时再真正加载。只支持Nodejs或者JS上才能实现。
+    关系相关FAQ：
