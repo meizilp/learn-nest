@@ -179,3 +179,14 @@ Entity:
         Eager设置为true时，这样的关系每次都自动把关联的Entity从数据库中加载。无需额外操作。
         Lazy关系是通过Promise实现，当要访问字段时再真正加载。只支持Nodejs或者JS上才能实现。
     关系相关FAQ：
+        * 如何创建自引用关系（比如用于tree结构）：和其他关系一样，没特殊处理。
+        * 如何不加载关联的Entity，而知道关联Entity的id：在Entity中增加一个列，这个列的名称是'关系名'+'Id'，这样就会把外键填入这个字段了。
+        * 如何手动通过关系加载Entity：find时传递参数，通过relations字段指明要使用的关系。
+        * 避免关系属性初始化：因为一旦初始化了关系属性，那么保存这个Entity时，这个关系属性如果没有真正从数据库中加载过，那么就会把初始值保存到数据库，而导致真正的关系被删除。
+
+Entity Manager和Repository:
+    EntityManager用来操作Entity的增删改查等。
+    Repository类似于EntityManager，只是操作限制在指定的类型中。有三种Repository：
+        * Repository：普通Repository。
+        * TreeRepository：树结构，多了一些树的操作。
+        * MongoRepositroy：多了一些操作Mongo数据库的额操作。
