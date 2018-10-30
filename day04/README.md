@@ -224,7 +224,6 @@ Entity操作监听：
 命令行：
 
 Demo样例：
-    TableVersion:每个表的版本。
     Thing：树结构。
         id
         Tag：多对多，一个标签可以有多个Task，Task可以有多个标签。
@@ -250,8 +249,20 @@ Demo样例：
         Flag:
         deleted:
 
-    Entity：TableVersion、Thing、Tag、DateTime、People、Note、RepeatMode、TimeTrack、Operation
+    Entity：Thing、Tag、MyDateTime、People、Note、RepeatMode、TimeTrack、Operation
+        Thing Module:Thing、MyDateTime、Note、RepeatMode
+        People Module：People
+        TimeTrack Module：TimeTrack
+        Operation Module：Operation
+        Tag Module: Tag
 
+        创建module： nest g mo thing; nest g mo people; nest g mo time-track;nest g mo operaton; nest g mo tag
+        创建Controller：
+        创建Service：
+        创建Entity：新建以.entity.ts为扩展名的文件。
+            创建类。
+
+        修改各module，在各module中imports typeorm
 
 GTasks API:
     https://developers.google.com/tasks/v1/reference/
