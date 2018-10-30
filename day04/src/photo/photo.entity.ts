@@ -7,7 +7,7 @@ export class Photo {
     id: number;
 
     @Column({ length: 500 })
-    name: string;
+    name2: string;
 
     @Column('text')
     description: string;
@@ -23,7 +23,7 @@ export class Photo {
 
     static create(createDto: CreatePhotoDto) {
         const photo = new Photo();
-        photo.name = createDto.name;
+        photo.name2 = createDto.name;
         photo.filename = createDto.filename;
         photo.description = createDto.description;
         return photo;

@@ -190,3 +190,68 @@ Entity Manager和Repository:
         * Repository：普通Repository。
         * TreeRepository：树结构，多了一些树的操作。
         * MongoRepositroy：多了一些操作Mongo数据库的额操作。
+    Find Options：在调用find函数时通过参数对象可以实现很多条件过滤。
+        select:string[] 要返回的字段
+        relations:string[] 要加载的关系，如果有子关系，那么通过.连接起来，比如videos.video_attr。
+        join:比relations更灵活。
+        where：where子句。
+        order:排序。可以多个字段分别指明排序方式。
+        skip：跳过多少记录。
+        take：取多少记录。
+        cache：是否启用缓存。启用后在设置时间内的查询直接读取cache以加快速度。
+        Not函数：不等于
+        LessThan、MoreThan、Equal：小于、大于、等于
+        Like：模糊匹配
+        BETWEEN：在值之间。
+        IN：在值的集合中。
+        ANY：支持子查询。
+        IsNull：为空。
+        Raw：执行原始SQL语句。
+    自定义Repository：为啥要自定义Repository？弄在Entity上不可以吗？
+    API：
+
+Query Builder：
+    更灵活强大的查询。
+    子查询：
+
+数据库迁移：
+    可以使用自动生成sql的命令，会对比当前配置的db和entity的区别，自动生成sql，但是只是schema变化，数值的变化仍然需要手动sql。
+    在config文件中要给cli指明存储路径，要给run指明迁移的文件有哪些，当run之后，会把迁移信息保存到db中。
+事务：
+索引：
+Entity操作监听：
+日志：
+命令行：
+
+Demo样例：
+    TableVersion:每个表的版本。
+    Thing：树结构。
+        id
+        Tag：多对多，一个标签可以有多个Task，Task可以有多个标签。
+        创建时间：嵌入Entity
+        创建人：一对一
+        截止时间：
+        类型：Todo、Project、Target、Folder
+        Title：
+        Note：一对多，可以有多个Note。
+        执行人：多对多
+        重复模式：一对一
+        状态：
+        操作日志：一对多，记录每次修改的内容。
+        时间追踪：一对多
+        估算时长：
+        计划开始时间：
+        状态：
+        完成时间：
+        附件：
+        优先级：
+        重要度：
+        NextReview:
+        Flag:
+        deleted:
+
+    Entity：TableVersion、Thing、Tag、DateTime、People、Note、RepeatMode、TimeTrack、Operation
+
+
+GTasks API:
+    https://developers.google.com/tasks/v1/reference/

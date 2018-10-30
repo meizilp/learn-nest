@@ -1,7 +1,13 @@
 {
     "type": "sqlite",
-    "database": "./main2.db",
+    "database": "./main.db",
     "entities": [
         "src/**/**.entity{.ts,.js}"
-    ]
+    ],
+    "migrations":[
+        "migration/*.ts"
+    ],
+    "cli": {
+        "migrationsDir": "migration"
+    }
 }
