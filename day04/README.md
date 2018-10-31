@@ -1,61 +1,110 @@
 # Nest 入门第4天
 
-## 数据库
+用TypeORM来实现，并且nest做了进一步的封装。  
+本次用sqlite3来验证，安装依赖包：`npm i @nestjs/typeorm typeorm sqlite3`。
 
-用TypeORM来实现，并且nest做了进一步的封装。
+## 配置及引用
 
-本次用sqlite3来验证，安装包：
-`npm i @nestjs/typeorm typeorm sqlite3`
+1. 在项目根目录创建配置文件`ormconfig.json`:
+    ```json
+    {
+        "type": "sqlite",
+        "database": "./main.db",
+        "synchronize": true,
+        "logging": true,
+        "entities": [
+            "src/**/entity/**{.ts,.js}"
+        ],
+        "migrations": [
+            "migration/*.ts"
+        ],
+        "cli": {
+            "migrationsDir": "migration"
+        }
+    }
+    ```
+    * 使用配置文件是便于通过typeorm的cli读取配置。
+    * `type`指明了使用的数据库类型，详见TypeORM文档。
+    * `database`数据库的存储文件（针对sqlite）
+    * `synchronize`程序启动时是否自动创建数据库中的表，生产环境应设置为`false`以避免数据库被破坏，调试环境可以设为`true`便于调试。
+    * `logging`是否显示日志，调试环境可以设置为`true`可以看到对数据库的操作。
+    * `entities`存放Entity定义的目录或者文件，在TypeOrm加载时会处理这些文件，读取信息进行初始化。
+    * `migrations`数据库升级要执行的代码。在cli或者TypeOrm加载时可以执行这些代码。
+    * `cli`命令行相关的配置。`migrationsDir`指明通过cli生成migration代码时保存代码的位置。
+2. 修改`app.module.ts`：动态加载TypeOrm模块。
+    ```ts
+    imports: [TypeOrmModule.forRoot()],
+    ```
+    * `formRoot`没有参数时会TypeOrm会默认读取配置文件获取配置信息。
+3. 定义Entity：
+    新建photo的Module、Controller、Service、Entity：
+    ```sh
+    nest g mo photo # 创建photo.module.ts
+    nest g co photo # 创建photo.controller.ts
+    nest g s photo photo # 创建photo.service.ts
+    typeorm entity:create -n Photo -d src/photo/entity # 创建Photo.ts
+    ```
+    修改`photo.module.ts`:
+    ```ts
+    //动态引入TypeOrmModule，这样Photo Module中才能使用此模块中的内容。
+    imports: [TypeOrmModule.forFeature([Photo])],  
+    ```
+    修改`photo.controller.ts`：调用photo service中的接口实现路由的处理。  
+    修改`photo.service.ts`： 
+    ```ts
+     constructor(
+        // 通过依赖注入得到操作Photo Entity的Repository
+        @InjectRepository(Photo)
+        private readonly photoRepository: Repository<Photo>,
+    ) { }
 
-app.module.ts修改：动态模块加载。
-```ts
-imports: [TypeOrmModule.forRoot({
-    type: 'sqlite',
-    database: './main.db',
-    entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-    synchronize: true,
-  })],
-```
-* 调试环境下可以用synchronize属性，来自动创建表。
-* 生产环境下通过cli来创建数据库的schema。如果是基于typescript文件创建，那么要用到ts-node
+    async findAll() {
+        // 通过Repository的接口进行数据库查询
+        return await this.photoRepository.find();
+    }
+    ```
+    修改`entity/Photo.ts`:
+    ```ts
+    import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+
+    // 标记Entity类
+    @Entity()
+    export class Photo {
+        @PrimaryGeneratedColumn()
+        id: number;
+
+        @Column({ length: 500 })
+        name: string;
+
+        @Column('text')
+        description: string;
+
+        @Column()
+        filename: string;
+
+        @Column('int', { default: 0 })
+        views: number;
+    }
+    ```
+    * 如果有构造函数，那么构造函数的参数必须是可选的。因为TypeOrm初始化时会新建一个Entity对象以获取Entity的信息，如果构造函数的参数不可选，那么TypeOrm初始化不知道如何传递参数值，初始化就会失败。
+
+4. 通过typeorm cli创建数据库Schema：  
+    因为要处理ts代码，所以先安装`ts-node`模块：
     ```sh
     npm i ts-node --save-dev
+    ```
+    执行前先看下要执行的SQL语句：  
+    ```sh
     ts-node ./node_modules/typeorm/cli.js schema:log
     ```
-    这个命令可以可以看到创建schema会执行的sql。另外配置要放到项目根目录的ormconfig.json文件中才可以。
+    确认无误后，可以创建schema了：
+    ```sh
+    ts-node ./node_modules/typeorm/cli.js schema:sync
+    ```
 
-新建photo模块及Controller、Service：
-```sh
-nest g mo photo
-nest g co photo
-nest g s photo photo # 创建服务时要带上path，否则创建到根目录了。
-```
+5. 运行查看效果：`npm run start`
 
-修改photo.module.ts, imports在当前模块注册typeorm模块，如果不注册，service中会DI失败
-```ts
-```
-
-定义photo的entity：photo.entity.ts
-```ts
-}
-```
-* TypeOrmModule初始化的时候会构造一个Entity对象，所以Entity的构造函数必须是无参数或者处理参数未定义时的情况。
-* 所以dto、entity、逻辑对象分开定义最好，避免互相干扰。
-
-修改photo.service.ts，提供photo数据的增删改查功能：
-```ts
-```
-* 构造函数通过依赖注入，获得操作Photo的Repository对象
-* save、insert、remove、delete的操作各不相同，主要是存在关系的对象操作不同
-
-修改photo.controller.ts，进行路由处理：
-```ts
-```
-
-运行查看效果：
-`npm run start`
-
-## TypeORM
+## TypeORM详解
 
 参见<http://typeorm.io>
 
