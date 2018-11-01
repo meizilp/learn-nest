@@ -108,39 +108,61 @@
 
 参见<http://typeorm.io>
 
-配置文件：ormconfig.json
+### Connection（数据库连接）
 
-    * type:必须
-    * name:默认值default，多个连接时需要自己命名
-    * entities:要使用此连接的entity代码路径，找到entity代码后，typeorm库会初始化。
-    * migrations：数据库升级的代码
-    * logging:设置为true后可以在控制台看到执行的sql语句。
-    * maxQueryExecutionTime：查询最大执行时间，超时则记录查询。可以用于优化。
-    * dropSchema:每次程序启动时都清空数据库（用于调试）。
-    * synchronize：每次程序启动自动创建数据库以及表（便于调试，但不要用于生产环境）
+1. 只有创建了数据库的连接之后，才可以操作数据库。`nest`中已经再次封装，无需自己在创建连接。
+2. 配置文件：`ormconfig.json`，存放在项目根目录。常用选项：
+    * `type`:数据库类型，必须指定。目前支持"mysql"、"postgres"、"sqlite"等。
+    * `name`:连接的名称，默认值"default"。多个连接时，每个连接的名称都要唯一。
+    * `entities`:要使用此连接的entity代码路径，找到entity代码后，typeorm库会初始化。
+    * `migrations`：数据库迁移的代码路径。
+    * `logging`:设置为true后可以在控制台看到执行的sql语句。
+    * `maxQueryExecutionTime`：查询最大执行时间，超时则记录查询。可以用于优化。
+    * `dropSchema`:每次程序启动时都清空数据库（用于调试）。
+    * `synchronize`：自动创建数据库以及表（便于调试，但不要用于生产环境）。
 
-Entity:
+    不同`type`的数据库还有一些不同的选项，具体可参考typeorm的文档。
 
-  * @Entiy()装饰器来修饰类。
-  * 必须有一个主列。
-  * 必须在连接选项中注册，因为typeorm需要读取装饰器提供的信息。
-  * 如果有构造函数，其参数必须是可选的。
-   
-  列：@Column()装饰器修饰类。
+### Entity（实体）
 
-  1. 主列：@PrimaryColumn()、自增主列:@PrimaryGeneratedColumn()、uuid主列@PrimaryGeneratedColumn（"uuid")，可以有多个主列。
-  2. save以及find时都是以id或者ids列为准的。
-  3. 特殊列：@CreateDateColumn()、@UpdateDateColumn()、@VersionColumn()
-  4. 列类型：可以指定更精确的类型。
-      * 常见的：int、text等等。不同的数据库不同。
-      * 简单数组类型：数组元素如果值中不包含逗号，可以存到一个列中，指定类型@Column("simple-array")。
-      * 简单json类型： @Column("simple-json")。可以把一个对象以json形式存储在一个列中，并通过JSON.parse解析为原来的对象。
-  5. 类选项：可以指定type、length、name、nullable、readonly、default、unique等。
+Entity是一个映射到数据库表的类，通过`@Entity()`修饰。
 
-  Entity的继承：
+* 一个Entity一般对应一个数据库的表，但如果包含其他Entity的关系，也可能会创建多个表。
+* 每个Entity都需要在连接时注册后才能使用，因为typeorm要读取Entity的信息。通过在配置文件中提供Entity代码的路径即可完成注册（支持通配符路径）。
+* Entity如果有构造函数，那么构造函数的参数必须是可选的，因为typeorm初始化时会创建一个Entity对象，此时无法传递参数。
+
+#### 实体的列（Column）
+
+* `@Column()`装饰器修饰的字段映射到数据库的表列上。
+* 每个Entity必须至少有一个主列。
+    * 主列：`@PrimaryColumn()`
+    * 自增主列:`@PrimaryGeneratedColumn()`
+    * 自生成uuid主列：`@PrimaryGeneratedColumn（"uuid")`
+* `id`或`ids`列：一般Entity中都以此名称的列为识别字段，`save`以及`findOne`等函数都查找此字段的值。
+* 特殊列：`@CreateDateColumn()`、`@UpdateDateColumn()`、`@VersionColumn()`
+* 列类型：列可以指定更精确的类型。
+    * 格式：`@Column("int")`或者`Column({type:"int"})`。
+    * 常见的类型：int、text等等。不同的数据库不同。
+    * 简单数组类型：`@Column("simple-array")`，数组中的值都会存储在单个字符串中，所有的值以逗号分隔。要求值中不包含逗号才可以。
+    * 简单json类型： `@Column("simple-json")`，可以把一个对象以json形式存储在一个列中，并通过JSON.parse解析为原来的对象。
+* 列选项：可以指定列的更详细配置。
+    * 格式`@Column({})`。
+    * `type`：指明列的类型，不同的数据库不同。
+    * `name`：数据库表中的列名称。默认是根据字段名称自动生成的，也可以自己指定。
+    * `length`：列类型的长度。
+    * `width`：仅用于MYSQL证书类型的列显示宽度。
+    * `nullable`：列是否可以为空，默认是`false`。
+    * `readonly`：是否只读，默认`false`。如果为`true`，那么久只有第一次插入对象时能修改此值。
+    * `default`：列的默认值。
+    * `primary`：是否是主列。
+    * `unique`：是否要求唯一值。
+
+#### Entity的继承：
+
     把公共列放到一个类中，但是这个类不要用装饰符修饰。其他子类extends此类，并用@Entity修饰。
 
-  Entity的嵌入：
+#### Entity的嵌入：
+
     通过嵌入可以解决所有的字段都被迫展开在一层的问题，使得及结构更清晰。被嵌入的类不要用修饰符修饰，只要列仍然正常的修饰即可。然后通过@Column(type => 被嵌入的类名称)，来说明这列是嵌入的，实际上是多列。
 
   分离Entity的定义：
