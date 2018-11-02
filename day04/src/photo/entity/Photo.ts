@@ -1,15 +1,15 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToOne } from 'typeorm';
-import { CreatePhotoDto } from './dto/create_photo.dto';
+import { CreatePhotoDto } from '../dto/create_photo.dto';
 
 @Entity()
 export class Photo {
-    @PrimaryGeneratedColumn()
+    @PrimaryGeneratedColumn('uuid')
     id: number;
 
-    @Column({ length: 500 })
-    name2: string;
+    @Column({ length: 256, nullable: true })
+    name: string;
 
-    @Column('text')
+    @Column({ type: 'text', nullable: true })
     description: string;
 
     @Column()
@@ -23,7 +23,7 @@ export class Photo {
 
     static create(createDto: CreatePhotoDto) {
         const photo = new Photo();
-        photo.name2 = createDto.name;
+        photo.name = createDto.name;
         photo.filename = createDto.filename;
         photo.description = createDto.description;
         return photo;

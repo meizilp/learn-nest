@@ -13,7 +13,7 @@ export class PhotoController {
 
     @Get(':id')
     findOne(@Param('id') id) {
-        return this.photoService.findOneByID(+id);
+        return this.photoService.findOneByID(id);
     }
 
     @Post()
@@ -28,6 +28,6 @@ export class PhotoController {
 
     @Delete(':id')
     deleteOne(@Param('id') id) {
-        return this.photoService.remove(+id);
+        return this.photoService.remove(id);
     }
 }
