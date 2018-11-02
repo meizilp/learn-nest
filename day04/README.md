@@ -1,5 +1,6 @@
 # Nest 入门第4天
 
+数据库操作。  
 用TypeORM来实现，并且nest做了进一步的封装。  
 本次用sqlite3来验证，安装依赖包：`npm i @nestjs/typeorm typeorm sqlite3`。
 
@@ -204,20 +205,26 @@ Entity是一个映射到数据库表的类，通过`@Entity()`修饰。
     }
     ```
 
-#### 树结构的存储：
+#### 树结构实体：
 
-树作为经常使用的一种数据接口，常见的通过关系型数据库保存的方案有4种，typeorm对树的操作进行了封装，以便于使用。
+树作为经常使用的一种数据接口，常见的通过关系型数据库保存的方案有4种：
 
-  树结构的存储：有4中方案可以采用。节点都要同样的Entity？
-    <https://www.slideshare.net/billkarwin/models-for-hierarchical-data> 69页做了对比
-    <https://schinckel.net/2014/09/13/long-live-adjacency-lists/>
-    Adjacency List: 最简单。但对于获取子树不利。如果树深度不深可以就可以回避了。
-    Path Enumeration:对写入不利。
-    Nested Sets:只能有一个根节点。写入也不利。
-    Closure Table:需要两个表，空间相对需要比较大。
-    TypeOrm对直接操作tree做了一下封装，以便于使用。
+1. Adjacency List: 每个节点保存parent的id。最简单，但对于获取子树不利，适用于树深度不大的情况。
+2. Path Enumeration:把一条树路径上的所有节点id拼接起来写入一个字段。对写入不利。
+3. Nested Sets:只能有一个根节点，利于读但对写入不利。
+4. Closure Table:单独建立一个表保存节点之间的关系，空间相对需要比较大，性能对于读写都较好。  
 
-关系：Entity之间可以有一对一、一对多、多对一、多对多的关系，并且可以是单向或者双向的。
+参考资料：
+* <https://www.slideshare.net/billkarwin/models-for-hierarchical-data> 69页做了对比。
+* <https://schinckel.net/2014/09/13/long-live-adjacency-lists/> 对邻接表做了描述。
+
+TypeOrm对直接操作tree做了一下封装，以便于使用。
+
+
+
+### 关系
+
+Entity之间可以有一对一、一对多、多对一、多对多的关系，并且可以是单向或者双向的。
     关系创建时可以指定选项：
         eager：对象加载时是否把关联的字段也自动加载填充了。
         cascade：对象存储时是否把关联的资源也自动存储了。
