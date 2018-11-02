@@ -5,7 +5,7 @@ import { Address } from './Address';
 @Entity()
 export class Photo {
     @PrimaryGeneratedColumn('uuid')
-    id: number;
+    id: string;
 
     @Column({ length: 256, nullable: true })
     name: string;

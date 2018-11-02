@@ -38,56 +38,57 @@
     ```
     * `formRoot`没有参数时会TypeOrm会默认读取配置文件获取配置信息。
 3. 定义Entity：
-    新建photo的Module、Controller、Service、Entity：
-    ```sh
-    nest g mo photo # 创建photo.module.ts
-    nest g co photo # 创建photo.controller.ts
-    nest g s photo photo # 创建photo.service.ts
-    typeorm entity:create -n Photo -d src/photo/entity # 创建Photo.ts
-    ```
-    修改`photo.module.ts`:
-    ```ts
-    //动态引入TypeOrmModule，这样Photo Module中才能使用此模块中的内容。
-    imports: [TypeOrmModule.forFeature([Photo])],  
-    ```
-    修改`photo.controller.ts`：调用photo service中的接口实现路由的处理。  
-    修改`photo.service.ts`： 
-    ```ts
-     constructor(
-        // 通过依赖注入得到操作Photo Entity的Repository
-        @InjectRepository(Photo)
-        private readonly photoRepository: Repository<Photo>,
-    ) { }
+    1. 新建photo的Module、Controller、Service、Entity：
+        ```sh
+        nest g mo photo # 创建photo.module.ts
+        nest g co photo # 创建photo.controller.ts
+        nest g s photo photo # 创建photo.service.ts
+        typeorm entity:create -n Photo -d src/photo/entity # 创建Photo.ts
+        ```
+    2. 修改`photo.module.ts`:
+        ```ts
+        //动态引入TypeOrmModule，这样Photo Module中才能使用此模块中的内容。
+        imports: [TypeOrmModule.forFeature([Photo])],  
+        ```
+    3. 修改`entity/Photo.ts`:
+        ```ts
+        import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
-    async findAll() {
-        // 通过Repository的接口进行数据库查询
-        return await this.photoRepository.find();
-    }
-    ```
-    修改`entity/Photo.ts`:
-    ```ts
-    import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+        // 标记Entity类
+        @Entity()
+        export class Photo {
+            @PrimaryGeneratedColumn()
+            id: number;
 
-    // 标记Entity类
-    @Entity()
-    export class Photo {
-        @PrimaryGeneratedColumn()
-        id: number;
+            @Column({ length: 500 })
+            name: string;
 
-        @Column({ length: 500 })
-        name: string;
+            @Column('text')
+            description: string;
 
-        @Column('text')
-        description: string;
+            @Column()
+            filename: string;
 
-        @Column()
-        filename: string;
+            @Column('int', { default: 0 })
+            views: number;
+        }
+        ```
+        * 如果有构造函数，那么构造函数的参数必须是可选的。因为TypeOrm初始化时会新建一个Entity对象以获取Entity的信息，如果构造函数的参数不可选，那么TypeOrm初始化不知道如何传递参数值，初始化就会失败。
+    4. 创建`dto/create_photo.dto.ts`
+    5. 修改`photo.service.ts`： 
+        ```ts
+        constructor(
+            // 通过依赖注入得到操作Photo Entity的Repository
+            @InjectRepository(Photo)
+            private readonly photoRepository: Repository<Photo>,
+        ) { }
 
-        @Column('int', { default: 0 })
-        views: number;
-    }
-    ```
-    * 如果有构造函数，那么构造函数的参数必须是可选的。因为TypeOrm初始化时会新建一个Entity对象以获取Entity的信息，如果构造函数的参数不可选，那么TypeOrm初始化不知道如何传递参数值，初始化就会失败。
+        async findAll() {
+            // 通过Repository的接口进行数据库查询
+            return await this.photoRepository.find();
+        }
+        ```
+    6. 修改`photo.controller.ts`：调用photo service中的接口实现路由的处理。  
 
 4. 通过typeorm cli创建数据库Schema：  
     因为要处理ts代码，所以先安装`ts-node`模块：
