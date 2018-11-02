@@ -159,15 +159,54 @@ Entity是一个映射到数据库表的类，通过`@Entity()`修饰。
 
 #### Entity的继承：
 
-    把公共列放到一个类中，但是这个类不要用装饰符修饰。其他子类extends此类，并用@Entity修饰。
+1. 把公共列放到一个普通类中，列仍然用`@Column()`标记。
+2. 其他子类extends此类，并用`@Entity()`标记类。
+3. 在数据库中生成子类的表时，会自动为每个子类加入公共列。
 
 #### Entity的嵌入：
 
-    通过嵌入可以解决所有的字段都被迫展开在一层的问题，使得及结构更清晰。被嵌入的类不要用修饰符修饰，只要列仍然正常的修饰即可。然后通过@Column(type => 被嵌入的类名称)，来说明这列是嵌入的，实际上是多列。
+通过嵌入可以解决所有的字段都被迫展开在一层的问题，使得及结构更清晰。  
 
-  分离Entity的定义：
-    单独的用代码文件定义Entity的Schema，cli也能处理。不过看上去似乎挺麻烦的。
-    
+1. 被嵌入的类不要用修饰符标记，列仍然用`@Column()`标记，列的详细选项也在此类提供。
+2. 宿主类通过@Column(type => 被嵌入的类名称)标记字段。
+3. 在数据库中生成宿主类的表时，会自动展开被嵌入的类，生成多列，列名也会自动生成。
+4. 在向数据库保存对象时，typeorm会自动把对象的字段保存到对应的列。
+5. 在数据库中加载对象时，typeorm会自动把对应的列加载到嵌入对象的字段中。
+6. 在通过嵌入对象的值进行查找操作时，`where`条件仍然按照对象的嵌套层次展开。
+
+示例：
+
+1. 被嵌入的类：`Address`
+    ```ts
+    import { Column } from 'typeorm';
+    export class Address {  // 类本身不标记
+        @Column({ nullable: true })     // 仍然此处定义列。
+        city: string;
+
+        @Column({ nullable: true })
+        street: string;
+    }
+    ```
+2. 宿主类：`Photo`
+    ```ts
+    @Column(type => Address)    // 此列和Address类型关联
+    location: Address;
+    ```
+3. 实际的建表SQL：嵌入类被展开为两列`locationCity`和`locationStreet`
+    ```sql
+    CREATE TABLE "photo" ("id" varchar PRIMARY KEY NOT NULL, "name" varchar(256), "description" text, "filename" varchar NOT NULL, "views" integer NOT NULL DEFAULT (0), "isPublished" boolean NOT NULL DEFAULT (0), "locationCity" varchar, "locationStreet" varchar)
+    ```
+4. 保存和读取都是和操作普通对象一样。
+5. 通过嵌入类的字段查找符合条件的记录：通过对象嵌套的方式来作为查找条件。
+    ```ts
+    async findByCity(targetCity: string) {
+        return await this.photoRepository.find({ where:{ location:{city:targetCity} } });
+    }
+    ```
+
+#### 树结构的存储：
+
+树作为经常使用的一种数据接口，常见的通过关系型数据库保存的方案有4种，typeorm对树的操作进行了封装，以便于使用。
 
   树结构的存储：有4中方案可以采用。节点都要同样的Entity？
     <https://www.slideshare.net/billkarwin/models-for-hierarchical-data> 69页做了对比

@@ -11,6 +11,11 @@ export class PhotoController {
         return this.photoService.findAll();
     }
 
+    @Get('city/:city')
+    findByCity(@Param('city') city) {
+        return this.photoService.findByCity(city);
+    }
+
     @Get(':id')
     findOne(@Param('id') id) {
         return this.photoService.findOneByID(id);

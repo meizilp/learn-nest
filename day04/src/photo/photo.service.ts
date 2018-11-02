@@ -30,4 +30,8 @@ export class PhotoService {
     async update(photo: Photo) {
         return await this.photoRepository.save(photo);
     }
+
+    async findByCity(targetCity: string) {
+        return await this.photoRepository.find({ where: { location: { city: targetCity } } });
+    }
 }
