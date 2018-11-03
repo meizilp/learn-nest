@@ -75,7 +75,8 @@
         ```
         * 如果有构造函数，那么构造函数的参数必须是可选的。因为TypeOrm初始化时会新建一个Entity对象以获取Entity的信息，如果构造函数的参数不可选，那么TypeOrm初始化不知道如何传递参数值，初始化就会失败。
     4. 创建`dto/create_photo.dto.ts`
-    5. 修改`photo.service.ts`： 
+    5. 修改`photo.controller.ts`：配置路由；调用photo service中的接口实现路由的处理。  
+    6. 修改`photo.service.ts`：
         ```ts
         constructor(
             // 通过依赖注入得到操作Photo Entity的Repository
@@ -88,7 +89,6 @@
             return await this.photoRepository.find();
         }
         ```
-    6. 修改`photo.controller.ts`：调用photo service中的接口实现路由的处理。  
 
 4. 通过typeorm cli创建数据库Schema：  
     因为要处理ts代码，所以先安装`ts-node`模块：
@@ -216,12 +216,69 @@ Entity是一个映射到数据库表的类，通过`@Entity()`修饰。
 4. Closure Table:单独建立一个表保存节点之间的关系，空间相对需要比较大，性能对于读写都较好。  
 
 参考资料：
+
 * <https://www.slideshare.net/billkarwin/models-for-hierarchical-data> 69页做了对比。
 * <https://schinckel.net/2014/09/13/long-live-adjacency-lists/> 对邻接表做了描述。
 
-TypeOrm对直接操作tree做了一下封装，以便于使用。
+对于邻接表实现的树结构保存，直接通过关系操作（见后）；  
+其它三种实现，TypeOrm对操作tree做了一下封装，以便于使用。  
+示例：（Closure Table）（示例类：TaskA）
 
+1. 新建TaskA的Module、Controller、Service、Entity、Dto类
+2. 修改TaskA的Module，引入TypeOrmModule
+3. 修改TaskA的Entity定义
+    ```ts
+    import { Tree, Entity, PrimaryGeneratedColumn, Column, TreeParent, TreeChildren } from 'typeorm';
 
+    @Entity()   // 仍然标记为Entity
+    @Tree('closure-table')  // 声明tree的保存方法
+    export class TaskA {
+        @PrimaryGeneratedColumn()
+        id: number;
+
+        @Column()
+        title: string;
+
+        @TreeParent()       // 使用Tree专门定义的装饰器，如果用Column会丢失信息，运行会出错。
+        parent: TaskA;
+
+        @TreeChildren({ cascade: true })    // 使用Tree专门定义的装饰器
+        children: TaskA[];
+    }
+    ```
+4. 修改TaskA的Controller：设定路由以及调用Service中的函数实现。
+5. 修改TaskA的Service
+    ```ts
+    @Injectable()
+    export class TaskaService {
+        // 直接注入TreeRepository
+        constructor(
+            @InjectRepository(TaskA)
+            private readonly taskRepository: TreeRepository<TaskA>,
+        ) { }
+    }
+
+    async findAll() {
+        // 利用treeRepository特有的函数获取树节点
+        return await this.taskRepository.findTrees();
+    }
+
+    async create(createDto: CreateTaskADto) {
+        // 必须用save，不能用insert，否则关系不会保存
+        return await this.taskRepository.save(  
+            this.taskRepository.create({
+                title: createDto.title,
+                parent: createDto.parent,
+            }));
+    }
+    ```
+
+* 运行后，typeOrm会创建TaskA的表以及TaskA节点关系的表。
+* 要使用TreeRepository，那么Entity必须使用`@Tree()`标记，并且列也要用`@TreeParent()`和`@TreeChildren()`标记才可以，否则运行时会因为无法的Tree信息出错。
+* 邻接表的存储typeOrm不能使用treeRepository中的函数操作，就使用普通关系一样操作即可。(虽然邻接表字符串目前在@Tree()的可用enum中，但是用了之后用tree函数操作会出错。)
+* 当parent为undefined时，会插入根节点。不过一开始create函数写错了，写成了`parent:{id:createDto.parent}`,这样导致parent永远不是undefined，插入根节点时出错。
+* 通过Postman调试，直接Post Raw Json数据，也能被正确解析。
+* 经过实际验证，感觉封装后的函数便利性一般。还是根据自己需要实现一套tree，可以几种tree的存储方式结合在一起（比如所有的父节点拼凑后保存在一个字段中，比如所有的children拼凑后保存在一个字段中）
 
 ### 关系
 

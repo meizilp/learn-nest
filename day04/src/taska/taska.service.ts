@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Repository, TreeRepository } from 'typeorm';
+import { TreeRepository } from 'typeorm';
 import { TaskA } from './entity/TaskA';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateTaskADto } from './dto/create_taska_dto';
@@ -24,10 +24,10 @@ export class TaskaService {
     }
 
     async create(createDto: CreateTaskADto) {
-        return await this.taskRepository.insert(
+        return await this.taskRepository.save(
             this.taskRepository.create({
                 title: createDto.title,
-                parent: { id: createDto.parent },
+                parent: createDto.parent,
             }));
     }
 }
