@@ -1,17 +1,28 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectRepository, InjectEntityManager } from '@nestjs/typeorm';
+import { Repository, EntityManager } from 'typeorm';
 import { MyTask } from './entity/myTask';
 import { CreateMyTaskDto } from './dto/create_mytask_dto';
+import { MyTaskRepository } from './entity/MyTaskRepository';
 
 @Injectable()
 export class MyTaskService {
+    // constructor(
+    //     @InjectRepository(MyTask)
+    //     private readonly repo: Repository<MyTask>,
+    // ) { }
+
+    private readonly repo: MyTaskRepository;
+
     constructor(
-        @InjectRepository(MyTask)
-        private readonly repo: Repository<MyTask>,
-    ) { }
+        @InjectEntityManager()
+        manager: EntityManager,
+    ) {
+        this.repo = manager.getCustomRepository(MyTaskRepository);
+    }
 
     async findAll() {
+        return this.repo.sayHello();
     }
 
     async findOneById(id: number) {

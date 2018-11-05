@@ -401,7 +401,29 @@ Entity之间可以有一对一、一对多、多对一、多对多的关系，�
     * ANY：支持子查询。`{title:Any(["About 2", "About 3"])}`
     * IsNull：为空。`{title:IsNull()}`
     * Raw：执行原始SQL语句。`{views:Raw("1+views=4")}`
-4. 自定义Repository：
+4. 自定义Repository：  
+    如果对于Entity有些自己封装的操作，就可以把这些操作封装到一个自定义Repository中，便于使用。
+    1. 定义`EntityRepository`：类名可以随便起。
+    ```ts
+    @EntityRepository(MyTask)
+    export class MyTaskRepository extends Repository<MyTask> {
+        sayHello() {
+            return 'hello custom repository';
+        }
+    }
+    ```
+    2. 在service中通过`EntityManager`获得自定义的repo。此repo无需在module中imports。
+    ```ts
+    private readonly repo: MyTaskRepository;
+
+    constructor(
+        @InjectEntityManager()
+        manager: EntityManager,
+    ) {
+        this.repo = manager.getCustomRepository(MyTaskRepository);
+    }
+    ```
+
 5. EntityManager API：
 6. Repository API:
 
