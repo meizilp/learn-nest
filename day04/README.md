@@ -50,6 +50,7 @@
         //动态引入TypeOrmModule，这样Photo Module中才能使用此模块中的内容。
         imports: [TypeOrmModule.forFeature([Photo])],  
         ```
+        * `forFeature()`的实现在`typeorm.providers.js`的`createTypeOrmProviders`函数中，会把要加载的Repo名字保存到数组中。
     3. 修改`entity/Photo.ts`:
         ```ts
         import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
@@ -89,6 +90,7 @@
             return await this.photoRepository.find();
         }
         ```
+        * InjectRepository在`node_modules\@nestjs\typeorm\dist\common\typeorm.decorators.d.ts`声明，在对应的js文件中可以看到实现，逐步跟踪到`node_modules\@nestjs\typeorm\dist\common\typeorm.utils.js`有真正的实现，从这儿可以看到实际上就是拼凑出了Repository的名字。（connection和manager的注入也是类似，默认名字是"default"。）
 
 4. 通过typeorm cli创建数据库Schema：  
     因为要处理ts代码，所以先安装`ts-node`模块：
@@ -380,84 +382,42 @@ Entity之间可以有一对一、一对多、多对一、多对多的关系，�
 
 ### Entity Manager和Repository
 
-    EntityManager用来操作Entity的增删改查等。
-    Repository类似于EntityManager，只是操作限制在指定的类型中。有三种Repository：
-        * Repository：普通Repository。
-        * TreeRepository：树结构，多了一些树的操作。
-        * MongoRepositroy：多了一些操作Mongo数据库的额操作。
-    Find Options：在调用find函数时通过参数对象可以实现很多条件过滤。
-        select:string[] 要返回的字段
-        relations:string[] 要加载的关系，如果有子关系，那么通过.连接起来，比如videos.video_attr。
-        join:比relations更灵活。
-        where：where子句。
-        order:排序。可以多个字段分别指明排序方式。
-        skip：跳过多少记录。
-        take：取多少记录。
-        cache：是否启用缓存。启用后在设置时间内的查询直接读取cache以加快速度。
-        Not函数：不等于
-        LessThan、MoreThan、Equal：小于、大于、等于
-        Like：模糊匹配
-        BETWEEN：在值之间。
-        IN：在值的集合中。
-        ANY：支持子查询。
-        IsNull：为空。
-        Raw：执行原始SQL语句。
-    自定义Repository：为啥要自定义Repository？弄在Entity上不可以吗？
-    API：
+1. EntityManager用来操作Entity的增删改查等，调用函数时要传入具体要操作的Entity类型。  
+2. Repository类似于EntityManager，只是操作限制在指定的Entity类型中。  
+3. Find*系列函数是使用EntityManager和Repository时经常调用的函数，调用时可以传递不同的选项来控制： 
+    * select:string['filed1', 'field2] 要返回的字段。
+    * relations:string[] 要加载的关系。
+    * join:比relations更灵活。
+    * where：where子句，类似：`{where:{firstName:'Tim'}}`。
+    * order:排序。可以多个字段分别指明排序方式，类似`{order:{name:"ASC", id:"DESC"}}`。
+    * skip：跳过多少记录。
+    * take：取多少记录。
+    * cache：是否启用缓存。启用后在设置时间内的查询直接读取cache以加快速度。
+    * Not函数：不等于。`{title:Not("abc")}`
+    * LessThan、MoreThan、Equal：小于、大于、等于。`{views:LessThan(10)}`
+    * Like：模糊匹配。`{title:Like("%out #%")}`
+    * BETWEEN：在值之间。`{views:Between(1,10)}`
+    * IN：在值的集合中。`{title:in(["About 2", "About 3"])}`
+    * ANY：支持子查询。`{title:Any(["About 2", "About 3"])}`
+    * IsNull：为空。`{title:IsNull()}`
+    * Raw：执行原始SQL语句。`{views:Raw("1+views=4")}`
+4. 自定义Repository：
+5. EntityManager API：
+6. Repository API:
 
-Query Builder：
-    更灵活强大的查询。
-    子查询：
+### Query Builder：
 
-数据库迁移：
+更灵活强大的查询。
+子查询：
+
+### 数据库迁移：
+
     可以使用自动生成sql的命令，会对比当前配置的db和entity的区别，自动生成sql，但是只是schema变化，数值的变化仍然需要手动sql。
     在config文件中要给cli指明存储路径，要给run指明迁移的文件有哪些，当run之后，会把迁移信息保存到db中。
-事务：
-索引：
-Entity操作监听：
-日志：
-命令行：
 
-Demo样例：
-    Thing：树结构。
-        id
-        Tag：多对多，一个标签可以有多个Task，Task可以有多个标签。
-        创建时间：嵌入Entity
-        创建人：一对一
-        截止时间：
-        类型：Todo、Project、Target、Folder
-        Title：
-        Note：一对多，可以有多个Note。
-        执行人：多对多
-        重复模式：一对一
-        状态：
-        操作日志：一对多，记录每次修改的内容。
-        时间追踪：一对多
-        估算时长：
-        计划开始时间：
-        状态：
-        完成时间：
-        附件：
-        优先级：
-        重要度：
-        NextReview:
-        Flag:
-        deleted:
+### 事务：
+### 索引：
+### Entity操作监听：
+### 日志：
+### 命令行：
 
-    Entity：Thing、Tag、MyDateTime、People、Note、RepeatMode、TimeTrack、Operation
-        Thing Module:Thing、MyDateTime、Note、RepeatMode
-        People Module：People
-        TimeTrack Module：TimeTrack
-        Operation Module：Operation
-        Tag Module: Tag
-
-        创建module： nest g mo thing; nest g mo people; nest g mo time-track;nest g mo operaton; nest g mo tag
-        创建Controller：
-        创建Service：
-        创建Entity：新建以.entity.ts为扩展名的文件。
-            创建类。
-
-        修改各module，在各module中imports typeorm
-
-GTasks API:
-    https://developers.google.com/tasks/v1/reference/

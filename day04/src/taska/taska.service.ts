@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { TreeRepository } from 'typeorm';
+import { TreeRepository, getCustomRepository } from 'typeorm';
 import { TaskA } from './entity/TaskA';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateTaskADto } from './dto/create_taska_dto';
