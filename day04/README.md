@@ -117,7 +117,7 @@
 1. 只有创建了数据库的连接之后，才可以操作数据库。`nest`中已经再次封装，无需自己在创建连接。
 2. 配置文件：`ormconfig.json`，存放在项目根目录。常用选项：
     * `type`:数据库类型，必须指定。目前支持"mysql"、"postgres"、"sqlite"等。
-    * `name`:连接的名称，默认值"default"。多个连接时，每个连接的名称都要唯一。
+    * `name`:连接的名称，默认值"default"。多个连接时，每个连接的名称都要唯一以作为token。
     * `entities`:要使用此连接的entity代码路径，找到entity代码后，typeorm库会初始化。
     * `migrations`：数据库迁移的代码路径。
     * `logging`:设置为true后可以在控制台看到执行的sql语句。
@@ -126,6 +126,20 @@
     * `synchronize`：自动创建数据库以及表（便于调试，但不要用于生产环境）。
 
     不同`type`的数据库还有一些不同的选项，具体可参考typeorm的文档。
+3. Connection API:经常会用到的。
+    * createConnection:创建连接。
+    * getConnection:获取指定的连接。
+    * getEntityManager：得到本connection的EntityManager。
+    * getRepository：得到指定类型Entity的Repository。
+    * name:连接的名称，默认是‘default’
+    * synchronize:同步数据库schema。
+    * dropDatabase：删除数据库。
+    * runMigrations：执行迁移代码。
+    * getCustomRepository：获取自定义的Repo。
+    * transaction:执行事务。
+    * query:执行RAW SQL。
+    * createQueryBuilder：创建查询对象。
+    * createQueryRunner:创建查询执行对象，连接数据库后执行查询，然后要释放。
 
 ### Entity（实体）
 
@@ -425,7 +439,37 @@ Entity之间可以有一对一、一对多、多对一、多对多的关系，�
     ```
 
 5. EntityManager API：
-6. Repository API:
+    * connection:本manager使用的connection。
+    * queryRunner：用来执行查询的runner，只有在transaction中才有值，普通的时候是undefined。
+    * transaction：执行事务。
+    * query：执行RAQ SQL。
+    * createQueryBuilder：创建查询。
+    * create：创建一个新指定的类型对象，可以传入一个字面量对象作为初始化的值。
+    * preload: 创建一个新指定的类型对象。创建时提供一个初始对象（要包含主列），以主列从数据库中加载对象，然后用初始对象中的字段覆盖加载对象得到一个合并后的对象。
+    * save：保存一组对象。并且保存对象关联的关系。这组对象保存时会在**一个事务中**完成。另外对象中没有定义的属性保存时会不更新数据库。
+    * remove：移除一组对象。也会移除对象关联的关系。这组对象移除时会在**一个事务中**完成。
+    * insert：插入一组对象。不会保存对象关联的关系。
+    * update：更新指定的一个对象。
+    * delete：删除指定的一个或者一组对象。不会改变对象之间的关系。
+    * count: 计算符合条件的对象数量。
+    * find：按照给定的选项查找Entity。
+    * findAndCount：按照给定选项超找Entity，并且忽略分页选项计算所有符合条件的数目。（便于分页）
+    * findByIds：根据给定的一组id返回Entity。
+    * findOne：查找第一个符合条件的Entity。
+    * findOneOrFail：查找第一个符合条件的Entity，如果没找到就reject promise。
+    * clear：清空指定的表。
+    * getRepository：得到指定Entity的Repo。
+    * getCustomRepositroy：得到指定Entity的自定义Repo。
+
+6. Repository API:（和Manager中最大的区别在于Repo具体到了某一类型的Entity上）
+    * manager:得到本Repo使用的EntityManager。
+    * queryRunner：仅在事务中，得到使用的queryRunner。一般情况下都是undefined。
+    * createQueryBuilder：创建query builder以构建查询。
+    * create：使用给定的对象创建一个对象。
+    * preload:合并初始对象和数据库中的对象得到一个新对象。
+    * save:保存给定的对象。在事务中完成一组对象保存。
+    * remove：删除给定的对象。在事务中完成。
+    * insert、delete、update、count、find、findAndCount、findByIds、findOne、findOneOrFail、query、clear都类似于Manager。
 
 ### Query Builder：
 
@@ -438,6 +482,7 @@ Entity之间可以有一对一、一对多、多对一、多对多的关系，�
     在config文件中要给cli指明存储路径，要给run指明迁移的文件有哪些，当run之后，会把迁移信息保存到db中。
 
 ### 事务：
+    每次queryRunner都要通过connection新创建，用完之后就要释放。
 ### 索引：
 ### Entity操作监听：
 ### 日志：

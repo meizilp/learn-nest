@@ -7,10 +7,6 @@ import { MyTaskRepository } from './entity/MyTaskRepository';
 
 @Injectable()
 export class MyTaskService {
-    // constructor(
-    //     @InjectRepository(MyTask)
-    //     private readonly repo: Repository<MyTask>,
-    // ) { }
 
     private readonly repo: MyTaskRepository;
 
