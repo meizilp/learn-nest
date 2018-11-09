@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { TreeRepository, getCustomRepository } from 'typeorm';
+import { TreeRepository, getCustomRepository, Transaction, TransactionManager, EntityManager } from 'typeorm';
 import { TaskA } from './entity/TaskA';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateTaskADto } from './dto/create_taska_dto';
+import { MyTaskRepository } from 'my-task/entity/MyTaskRepository';
 
 @Injectable()
 export class TaskaService {
@@ -23,7 +24,9 @@ export class TaskaService {
         return await this.taskRepository.findDescendants(await this.findOneById(id));
     }
 
-    async create(createDto: CreateTaskADto) {
+    @Transaction()
+    async create(createDto: CreateTaskADto, @TransactionManager() manager?: EntityManager) {
+        manager.connection.getMetadata(TaskA);
         return await this.taskRepository.save(
             this.taskRepository.create({
                 title: createDto.title,

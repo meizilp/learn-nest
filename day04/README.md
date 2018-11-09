@@ -525,6 +525,7 @@ await getManager().transaction(transactionalEntityManager => {
 ```
 * 要使用回调提供的manager。
 * 也可以使用queryRunner实现事务，以便更精细的控制。
+* 也可以使用@Transaction配合@TransactionRepository或者@TransactionManager使用。(依赖注入不限定在构造函数中)
 
 ### 索引：
 
@@ -569,6 +570,6 @@ typeorm migration:revert # 回退最近的迁移脚本
 typeorm schema:sync # 同步数据库的schema
 typeorm schema:log # 输出要同步数据库schema会执行的sql，不会真正执行
 typeorm schema:drop # 删除表
-typeorm query "SELECT * FROM USERS" # 执行SQL
+typeorm query "SELECT * FROM USERS" # 执行SQL。如果是ts那么需要ts-node
 typeorm cache:clear # 清理cache
 ```
