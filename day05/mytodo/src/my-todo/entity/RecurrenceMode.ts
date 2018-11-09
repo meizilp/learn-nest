@@ -8,6 +8,26 @@ export enum RecurrenceStrategy {
     Yearly = 4,     // 按照年重复
 }
 
+export class RecurrenceDailyData {
+    days: number;   // 每几天
+}
+
+export class RecurrenceWeeklyData {
+    weeks: number;  // 每几周
+    weekday: number[]; // 的哪些天
+}
+
+export class RecurrenceMonthlyData {
+    months: number; // 每几月
+    days: number[]; // 的哪些天
+}
+
+export class RecurrenceYearlyData {
+    years: number;    // 每几年
+    months: number[]; // 的哪些月
+    days: number[];   // 的哪些天
+}
+
 export enum RecurrenceNextAlogrium {
     FromComplete = 0,   // 从完成时间开始计算
     FromStart = 1,      // 从开始时间开始计算
@@ -26,7 +46,7 @@ export class RecurrenceMode {
 
     // 不同重复策略的附加数据
     @Column('simple-json')
-    strategyData: any;
+    strategyData: RecurrenceYearlyData | RecurrenceDailyData | RecurrenceWeeklyData | RecurrenceMonthlyData;
 
     // 如何计算下次发生的时间
     @Column({ nullable: true, default: RecurrenceNextAlogrium.FromComplete })
@@ -43,6 +63,10 @@ export class RecurrenceMode {
     // 重复多少次后停止重复
     @Column({ nullable: true })
     recurrenceCount: number;
+
+    // 重复的截至日期
+    @Column({ nullable: true })
+    recurrenceDueDate: Date;
 
     // 当前已经发生了的次数
     @Column({ nullable: true })

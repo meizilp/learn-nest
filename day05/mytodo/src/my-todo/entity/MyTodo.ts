@@ -4,7 +4,7 @@ import { ReminderMode } from './ReminderMode';
 import { RecurrenceMode } from './RecurrenceMode';
 
 export enum MyTodoType {
-    Todo = 0, Project = 1, Folder = 2, Goal = 3,
+    Todo = 0, Project = 1, Folder = 2, Goal = 3, Document = 4,
 }
 
 export enum MyTodoImportance {
@@ -16,7 +16,7 @@ export enum MyTodoPriority {
 }
 
 export enum MyTodoStatus {
-    New = 0, Running = 1, Completed = 2, NotStart = 3, Abandoned = 4, Paused = 5,
+    New = 0, Running = 1, Completed = 2, NotStart = 3, Abandoned = 4, Paused = 5, Archived = 6,
 }
 
 export enum MyTodoRisk {
@@ -51,7 +51,7 @@ export class MyTodo {
 
     // 是否标记。
     @Column({ default: false })
-    isFlag: boolean;
+    flaged: boolean;
 
     // 创建者ID。
     @Column('bigint', { nullable: true })
@@ -59,19 +59,19 @@ export class MyTodo {
 
     // 创建日期和时间。
     @Column()
-    createDateTime: Date;
+    createTime: Date;
 
     // 截止日期时间
     @Column(type => MyDateTime)
-    dueDateTime: MyDateTime;
+    dueTime: MyDateTime;
 
     // 完成时间
     @Column({ nullable: true })
-    completeDateTime: Date;
+    completeTime: Date;
 
     // 开始日期时间
     @Column(type => MyDateTime)
-    startDateTime: MyDateTime;
+    startTime: MyDateTime;
 
     // 任务来源。
     @Column('bigint', { nullable: true })
@@ -147,9 +147,12 @@ export class MyTodo {
 
     // 下次Review的日期时间
     @Column(type => MyDateTime)
-    nextReviewDateTime: MyDateTime;
+    nextReviewTime: MyDateTime;
 
     // 依赖ids
     @Column('simple-array', { nullable: true })
     dependencyIds: number[];
+
+    @Column({ default: false })
+    isTemplate: boolean;
 }
