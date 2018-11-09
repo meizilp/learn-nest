@@ -1,4 +1,7 @@
 import { Entity, PrimaryColumn, Column } from 'typeorm';
+import { MyDateTime } from './MyDateTime';
+import { ReminderMode } from './ReminderMode';
+import { RecurrenceMode } from './RecurrenceMode';
 
 export enum MyTodoType {
     Todo = 0, Project = 1, Folder = 2, Goal = 3,
@@ -14,6 +17,10 @@ export enum MyTodoPriority {
 
 export enum MyTodoStatus {
     New = 0, Running = 1, Completed = 2, NotStart = 3, Abandoned = 4, Paused = 5,
+}
+
+export enum MyTodoRisk {
+    Low = 0, Medium = 5, High = 10,
 }
 
 @Entity()
@@ -54,14 +61,17 @@ export class MyTodo {
     @Column()
     createDateTime: Date;
 
-    dueDate;
-    dueTime;
+    // 截止日期时间
+    @Column(type => MyDateTime)
+    dueDateTime: MyDateTime;
 
-    completeDate;
-    completeTime;
+    // 完成时间
+    @Column({ nullable: true })
+    completeDateTime: Date;
 
-    startDate;
-    startTime;
+    // 开始日期时间
+    @Column(type => MyDateTime)
+    startDateTime: MyDateTime;
 
     // 任务来源。
     @Column('bigint', { nullable: true })
@@ -79,7 +89,9 @@ export class MyTodo {
     @Column('simple-array', { nullable: true })
     childIds: number[];
 
-    risk;
+    // 风险
+    @Column({ nullable: true, default: MyTodoRisk.Low })
+    risk: MyTodoRisk;
 
     // 重要度
     @Column({ default: MyTodoImportance.Normal })
@@ -109,7 +121,13 @@ export class MyTodo {
     @Column('simple-array', { nullable: true })
     modificationIds: number[];
 
-    reminderMode;
+    // 提醒模式
+    @Column(type => ReminderMode)
+    reminderMode: ReminderMode;
+
+    // 重复模式
+    @Column(type => RecurrenceMode)
+    recurrenceMode: RecurrenceMode;
 
     // 完成百分比
     @Column({ nullable: true })
@@ -127,10 +145,9 @@ export class MyTodo {
     @Column('simple-array', { nullable: true })
     attachmentIds: number[];
 
-    recurrenceMode;
-
-    nextReviewDate;
-    nextReviewTime;
+    // 下次Review的日期时间
+    @Column(type => MyDateTime)
+    nextReviewDateTime: MyDateTime;
 
     // 依赖ids
     @Column('simple-array', { nullable: true })

@@ -14,7 +14,7 @@
     "baseUrl": "./src"
   },
   "include": [
-    "src/**/*"
+    "src/**/*", "../day05/mytodo/src/my-todo/entity/my-todo.repository.ts"
   ],
   "exclude": [
     "node_modules",
