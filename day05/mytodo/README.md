@@ -13,3 +13,12 @@ npm i ts-node --save-dev
 ```
 
 ## 创建MyTodo模块及Entity
+
+```sh
+nest g mo MyTodo
+nest g co MyTodo
+nest g s MyTodo my-todo
+typeorm entity:create -n MyTodo -d .\src\my-todo\entity
+在src/my-todo/dto/创建create-my-todo-dto.ts
+在src/my-todo/entity/创建my-todo.repository.ts
+```
