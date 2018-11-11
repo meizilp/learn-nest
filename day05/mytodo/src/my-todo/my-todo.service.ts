@@ -20,6 +20,7 @@ export class MyTodoService {
         });
         mytodo.title = createMyTodoDto.title;
         mytodo.createTime = new Date();
+        mytodo.order = Date.now();
         tobeSaveTodos.push(mytodo);
         if (createMyTodoDto.parent) {
             const parentTodo = await this.findOneById(createMyTodoDto.parent);

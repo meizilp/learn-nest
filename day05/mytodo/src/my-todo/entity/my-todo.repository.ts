@@ -9,7 +9,7 @@ export class MyTodoRepository extends Repository<MyTodo> {
         return await this.find({ where: { isDeleted: false, parentId: IsNull() } });
     }
 
-    // 查找所有的子任务。
+    // 查找所有的子任务。一种是在代码中展开本任务的
     async findDescendants() {
     }
 

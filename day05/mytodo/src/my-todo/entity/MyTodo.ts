@@ -156,4 +156,8 @@ export class MyTodo {
 
     @Column({ default: false })
     isTemplate: boolean;
+
+    @Index()
+    @Column({ type: 'bigint', nullable: true })
+    myorder: number;
 }
