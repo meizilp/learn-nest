@@ -45,7 +45,7 @@ export class RecurrenceMode {
     strategy: RecurrenceStrategy;
 
     // 不同重复策略的附加数据
-    @Column('simple-json')
+    @Column('simple-json', { nullable: true })
     strategyData: RecurrenceYearlyData | RecurrenceDailyData | RecurrenceWeeklyData | RecurrenceMonthlyData;
 
     // 如何计算下次发生的时间

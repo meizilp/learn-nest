@@ -1,4 +1,4 @@
-import { Entity, PrimaryColumn, Column } from 'typeorm';
+import { Entity, PrimaryColumn, Column, Index } from 'typeorm';
 import { MyDateTime } from './MyDateTime';
 import { ReminderMode } from './ReminderMode';
 import { RecurrenceMode } from './RecurrenceMode';
@@ -33,13 +33,13 @@ export class MyTodo {
     @Column({ nullable: true })
     title: string;
 
-    // 备注的id。支持多次备注，顺序存储。
+    // 备注的id。支持多次备注，顺序存储。string[]是因为typeorm加载时按照string加载。
     @Column('simple-array', { nullable: true })
-    noteIds: number[];
+    noteIds: string[];
 
     // 标签。支持多个标签。
     @Column('simple-array', { nullable: true })
-    tagIds: number[];
+    tagIds: string[];
 
     // 类型。默认为待办。
     @Column({ default: MyTodoType.Todo })
@@ -79,15 +79,16 @@ export class MyTodo {
 
     // 任务执行人
     @Column('simple-array', { nullable: true })
-    executorIds: number[];
+    executorIds: string[];
 
     // 父任务id。
+    @Index()
     @Column('bigint', { nullable: true })
     parentId: number;
 
     // 子任务ids。
     @Column('simple-array', { nullable: true })
-    childIds: number[];
+    childIds: string[];
 
     // 风险
     @Column({ nullable: true, default: MyTodoRisk.Low })
@@ -115,11 +116,11 @@ export class MyTodo {
 
     // 时间追踪记录ids。
     @Column('simple-array', { nullable: true })
-    timetrackIds: number[];
+    timetrackIds: string[];
 
     // 修改记录ids。
     @Column('simple-array', { nullable: true })
-    modificationIds: number[];
+    modificationIds: string[];
 
     // 提醒模式
     @Column(type => ReminderMode)
@@ -143,7 +144,7 @@ export class MyTodo {
 
     // 附件Ids
     @Column('simple-array', { nullable: true })
-    attachmentIds: number[];
+    attachmentIds: string[];
 
     // 下次Review的日期时间
     @Column(type => MyDateTime)
@@ -151,7 +152,7 @@ export class MyTodo {
 
     // 依赖ids
     @Column('simple-array', { nullable: true })
-    dependencyIds: number[];
+    dependencyIds: string[];
 
     @Column({ default: false })
     isTemplate: boolean;
