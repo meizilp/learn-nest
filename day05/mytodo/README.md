@@ -121,24 +121,58 @@ parent:
     4. 未能解决的问题：
         1. child的排序问题：
             赋予child一个序号：
-                首位置插入：所有的children都要更新序号。
+                首位置插入：所有的children都要更新序号。如何得到一个合适的序号？
                 首位置删除：无影响。
                 中间位置插入：所有被插入及之后的children都要更新序号。
                 中间位置删除：无影响。
                 末位置插入：无影响。但是新元素的序号要保证是最大的。取最后一个child然后要>他。通过max，可以，能够使用上parent的索引。
                 末位置删除：无影响。
-            通过链式连接：
-                单链：
-                双链：
-        2. 按照树形结构取子树的问题：取回所有后代后，通过代码再组织？都是在内存操作，数量不多，速度应该很快。
+            通过链式连接（双链）：这样递归加载了某个节点的所有子节点，并且是按照顺序加载的。
+                    递归加载。
+                    初始化：加载本节点的第一个子节点，parent = 本id and previous = null
+                    union all
+                    递归：加载本节点的下一个节点， id = next，无需判断parent了。
+                首位置插入：本节点的next修改，第一个节点的pre修改。
+                首位置删除：第二个节点的pre修改。
+                中间位置插入：上一个节点的next修改，本节点的next、pre修改，下一个节点的pre修改。
+                中间位置删除：上一个节点的next修改，下一个节点的pre修改。
+                末位置插入：上一个节点的next修改，本节点的pre修改
+                末位置删除：上一个节点的next修改
+            通过链式连接（单链 parent + pre）：这样递归加载了某个节点的所有子节点，并且是按照顺序加载的。
+                    递归加载。
+                    初始化：加载本节点的第一个子节点，parent = 本id and previous = null
+                    union all
+                    递归：加载本节点的下一个节点， preid = id
+                首位置插入：第一个节点的pre修改。
+                首位置删除：第二个节点的pre修改。
+                中间位置插入：本节点的pre修改，下一个节点的pre修改。
+                中间位置删除：下一个节点的pre修改。
+                末位置插入：本节点的pre修改（很常见，如何找到末位置？）
+                末位置删除：无影响
+
+        2. 按照树形结构取子树的问题(按照深度加载)：取回所有后代后，通过代码再组织？都是在内存操作，数量不多，速度应该很快。
 
 取直接Children：
 直接parentid=自身的就是。
 
-取ancestor：
-with recursive myan(id,parentid,title) as (select id,parentid,title from my_todo where id=1541903743859  union all select my_todo.id,my_todo.parentid,my_todo.title from my_todo,myan where myan.parentid = my_todo.id) select id,parentid,title from myan
+取ancestor： 本身塞队列，id是本身的parent的取出来塞入队列，这样得到的就是祖先。
+
+```sql
+with recursive
+    myan(id,parentid,title) as (
+        select id,parentid,title from my_todo where id=1541903743859  
+        union all
+        select my_todo.id,my_todo.parentid,my_todo.title from my_todo,myan where myan.parentid = my_todo.id)
+select id,parentid,title from myan
+```
+
 会用到id的索引
 
-取descendents：
-with recursive 	myan(id,parentid,title) as (select id,parentid,title from my_todo where parentid=1541903743859  union all select my_todo.id,my_todo.parentid,my_todo.title from my_todo,myan where my_todo.parentid = myan.id) select id,parentid,title from myan
+取descendents：平铺。把直接子节点都塞入队列。parentid是直接子节点的也加入队列，一层层的就把所有后台按照广度优先遍历完了。
+with recursive 	
+    myan(id,parentid,title) as (
+        select id,parentid,title from my_todo where parentid=1541903743859  
+        union all
+        select my_todo.id,my_todo.parentid,my_todo.title from my_todo,myan where my_todo.parentid = myan.id)
+select id,parentid,title from myan
 会用到parentid的索引
