@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { LocalStorageService } from 'src/app/services/local-storage.service';
 
 @Component({
   selector: 'app-setup',
@@ -7,9 +8,17 @@ import { Component, OnInit } from '@angular/core';
 })
 export class SetupComponent implements OnInit {
 
-  constructor() { }
+  username: string;
+
+  constructor(private store: LocalStorageService) { }
 
   ngOnInit() {
+  }
+
+  saveSettings(): void {
+    this.store.setInited();
+    this.store.setStartDate();
+    this.store.setUsername(this.username);
   }
 
 }

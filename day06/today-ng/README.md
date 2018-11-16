@@ -55,10 +55,15 @@ export class AppRoutingModule {}
 ng g s services/local-storage --module app
 ```
 
-修改代码实现get、set操作。  
+修改代码实现get、set操作以及某些key的读取保存操作。  
 
 通过分离存储服务可以实现：
 1. 多个模块使用同一个存储服务。
 2. 可以随时替换为不同的存储方式。
 
 ## 实现setup页面
+
+修改组件代码：
+
+修改组件页面：
+
