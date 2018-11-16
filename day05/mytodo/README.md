@@ -37,48 +37,40 @@ typeorm entity:create -n MyTodo -d .\src\my-todo\entity
 * 通过`datetime`系列函数得到的值可以和指定的值比较作为where的条件等。
 * 参见 <https://www.sqlite.org/lang_datefunc.html> 字符串格式列表和修改符列表
 
-### 通过with语句实现递归查询：(就是通过队列展开递归)
+### 通过with语句实现递归查询：(就是通过队列展开递归，广度遍历)
 
-1. 运行初始化select，结果加入队列中
+1. 运行初始化select，结果加入队列中(可能有多行)
 2. 队列不为空时：
     2a: 从队列中提取单行
     2b: 将单行插入到递归表
-    2c：针对刚插入的单行(相当于递归表中当做现在就一行，实际上可能已经插入了很多行了)执行递归select，结果加入队列中
-3. 最终得到的递归表中是所有进入过队列的行。
+    2c：递归表（cte）中当做就刚插入的这一行(实际上可能已经插入了很多行了)，执行递归select（一般是操作非cte），结果加入队列中
+    2d：重复2开始
+3. 最终得到的递归表(cte)中是所有进入过队列的行。
 
-递归查询子节点：
-
-1. 把所有的children id放到队列中
-2. 队列不为空
-    2a：从队列中提取一行
-    2b: 单行插入递归表
-    2c：这一行是个child，把这个child的child再提取出来放入队列
-3. 最终得到一个递归表
+递归查询后代节点：
 
 WITH RECURSIVE
-    myd(id) as (
-        values(children[])
+    my_cte(id,parentId) as (
+        select id from my_todo where id = 给定的id   // 从my_todo找到指定的对象加入队列。
         union all
-        select my_todo.children from my_todo, myd where parentId = myd.id
+        select my_todo.id, my_todo.parentId     // 指定要从my_todo中符合条件记录中所取的字段
+            from my_cte, my_todo    // 取my_cte中的一行以及my_todo中的所有行
+            where my_todo.parentId = my_cte.id    // 把my_todo中所有父节点是my_cte当前节点的记录都加入队列（广度展开树）
     )
-select id from myd
+select id, parentId from my_cte   // 把符合条件的记录提取出来
 
-递归查询父节点：
-
-1. 把parent id放到队列中
-2. 队列不为空
-    2a：从队列中提取一行
-    2b: 单行插入递归表
-    2c：这一行是个parent，把这个parent的parent再提取出来放入队列
-3. 最终得到一个递归表
+递归查询祖先节点：
 
 WITH RECURSIVE
-    myd(id) as (
-        values(parentId)
+    my_cte(id,parentId) as (
+        select id, parentId from my_todo where id = 给定的id  // 找到给定的id，
         union all
-        select my_todo.parentId from my_todo,myd where my_todo.parentId = myd.id
+        select my_todo.id, my_todo.parentId     // 指定要从my_todo中符合条件记录中所取的字段
+            from my_cte,my_todo                 // 取my_cte中的一行以及my_todo中的所有行
+            where my_cte.parentId is not null   // 如果当前节点存在父节点
+            and my_todo.id = my_cte.parentid    // 找到父节点并加入队列。不能加limit，因为可能有多级父节点。
     )
-select id from myd
+select id,parentId from my_cte
 
 ### 索引是如何工作的
 
@@ -119,7 +111,7 @@ parent:
         2. 把每个child的child找出来：也就是parent是child的找出来，进入队列。
         3. 所有进入过队列的child都被存储到了地递归表中，那么递归表中就是深度优先的descendents。
     4. 未能解决的问题：
-        1. child的排序问题：
+        1. child的排序问题：（考虑列表中的排序有定义的排序方式，所以自然排序不是那么着急）
             赋予child一个序号：
                 首位置插入：所有的children都要更新序号。如何得到一个合适的序号？
                 首位置删除：无影响。
@@ -152,26 +144,26 @@ parent:
 
         2. 按照树形结构取子树的问题(按照深度加载)：取回所有后代后，通过代码再组织？都是在内存操作，数量不多，速度应该很快。
 
-取直接Children：
-直接parentid=自身的就是。
+取根节点：parentid is null就是。
 
-取ancestor： 本身塞队列，id是本身的parent的取出来塞入队列，这样得到的就是祖先。
+取x直接Children：parentid=x.id 的就是。
+
+取x的ancestor：按照上面描述的算法取。
 
 ```sql
 with recursive
     myan(id,parentid,title) as (
-        select id,parentid,title from my_todo where id=1541903743859  
+        select id,parentid,title from my_todo where x.parentId is not null and id=x.parentid    // x.parent 进入队列
         union all
-        select my_todo.id,my_todo.parentid,my_todo.title from my_todo,myan where myan.parentid = my_todo.id)
+        select my_todo.id,my_todo.parentid,my_todo.title from my_todo,myan where my_todo.id = myan.parentId and my_todo.parentId is not null limit 1)
 select id,parentid,title from myan
 ```
-
 会用到id的索引
 
-取descendents：平铺。把直接子节点都塞入队列。parentid是直接子节点的也加入队列，一层层的就把所有后台按照广度优先遍历完了。
+取descendents：按照上面秒速的算法取。
 with recursive 	
     myan(id,parentid,title) as (
-        select id,parentid,title from my_todo where parentid=1541903743859  
+        select id,parentid,title from my_todo where parentid=x.id
         union all
         select my_todo.id,my_todo.parentid,my_todo.title from my_todo,myan where my_todo.parentid = myan.id)
 select id,parentid,title from myan

@@ -86,10 +86,6 @@ export class MyTodo {
     @Column('bigint', { nullable: true })
     parentId: number;
 
-    // 子任务ids。
-    @Column('simple-array', { nullable: true })
-    childIds: string[];
-
     // 风险
     @Column({ nullable: true, default: MyTodoRisk.Low })
     risk: MyTodoRisk;
@@ -156,8 +152,4 @@ export class MyTodo {
 
     @Column({ default: false })
     isTemplate: boolean;
-
-    @Index()
-    @Column({ type: 'bigint', nullable: true })
-    myorder: number;
 }

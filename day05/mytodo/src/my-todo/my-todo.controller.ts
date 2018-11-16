@@ -11,9 +11,29 @@ export class MyTodoController {
         return this.mytodoService.findAll();
     }
 
+    @Get('roots')
+    findRoots() {
+        return this.mytodoService.findRoots();
+    }
+
     @Get(':id')
     findOne(@Param('id') id) {
         return this.mytodoService.findOneById(+id);
+    }
+
+    @Get(':id/children')
+    findChildren(@Param('id') id) {
+        return this.mytodoService.findChildren(+id);
+    }
+
+    @Get(':id/ancestors')
+    findAncestors(@Param('id') id) {
+        return this.mytodoService.findAncestors(+id);
+    }
+
+    @Get(':id/descendents')
+    findDecendents(@Param('id') id) {
+        return this.mytodoService.findDescendents(+id);
     }
 
     @Post()
