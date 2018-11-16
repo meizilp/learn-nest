@@ -11,7 +11,7 @@ ng add ng-zorro-antd    # 添加Antd的引用
 ## 创建setup页面
 
 ```sh
-ng g m pages/setup      # 创建setup模块
+ng g m pages/setup      # 创建setup模块，修改模块引入formsmodule和antd的module
 ng g c pages/setup --module pages/setup # 创建setup页面组件
 ```
 
@@ -63,7 +63,30 @@ ng g s services/local-storage --module app
 
 ## 实现setup页面
 
-修改组件代码：
+修改组件代码：setup.component.ts
+```ts
+export class SetupComponent implements OnInit {
+  username: string;     // 声明变量，以便在页面中绑定
 
-修改组件页面：
+  constructor(private store: LocalStorageService) { }  // 通过依赖注入存储服务
 
+  ngOnInit() {
+  }
+
+  // 当点击保存按钮时调用的函数
+  saveSettings(): void {
+    this.store.setInited();
+    this.store.setStartDate();
+    this.store.setUsername(this.username);
+  }
+}
+```
+
+修改组件页面：一个输入框，绑定变量；一个按钮，绑定事件。
+
+```html
+<div>
+  <input nz-input placeholder="请输入用户名" #usernameInput [(ngModel)]="username">
+  <button nz-button nzType="primary" (click)="saveSettings()" [disabled]="!usernameInput.value">保存</button>
+</div>
+```

@@ -1,3 +1,4 @@
-<div class="full-screen page-content">
-
+<div>
+  <input nz-input placeholder="请输入用户名" #usernameInput [(ngModel)]="username">
+  <button nz-button nzType="primary" (click)="saveSettings()" [disabled]="!usernameInput.value">保存</button>
 </div>
