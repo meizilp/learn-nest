@@ -1,4 +1,14 @@
-<div>
-  <input nz-input placeholder="请输入用户名" #usernameInput [(ngModel)]="username">
-  <button nz-button nzType="primary" (click)="saveSettings()" [disabled]="!usernameInput.value">保存</button>
-</div>
+<nz-layout>
+  <nz-content style="height:100vh; justify-content:center;display: flex">
+    <div nz-row style="margin:auto">
+      <div nz-col nzSpan="6" nzOffset="9">
+        <input nz-input placeholder="请输入用户名" #usernameInput [(ngModel)]="username">
+      </div>
+    </div>
+    <div nz-row style="margin:auto">
+      <div nz-col nzSpan="6" nzOffset="9">
+        <button style="width:100%" nz-button nzType="primary" (click)="saveSettings()" [disabled]="!usernameInput.value">保存</button>
+      </div>
+    </div>
+  </nz-content>
+</nz-layout>

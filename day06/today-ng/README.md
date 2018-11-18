@@ -90,3 +90,19 @@ export class SetupComponent implements OnInit {
   <button nz-button nzType="primary" (click)="saveSettings()" [disabled]="!usernameInput.value">保存</button>
 </div>
 ```
+
+## CSS相关的一些知识
+
+## Antd布局
+
+### 栅格
+
+基于行列布局；每行划为24列；行定义为flex类型后，可以指定行内元素水平垂直如何对齐； 
+
+### Layout
+
+nz-layout：布局容器
+nz-header：
+nz-sider:
+nz-content:
+nz-footer:
