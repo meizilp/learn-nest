@@ -1,0 +1,18 @@
+#inputwin {
+    position: absolute;
+    width: 30vw;
+    top: 30vh;
+    left: 35vw;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around
+}
+
+.fullline {
+    width: 100%;
+}
+
+.actionbtn {
+    width: 45%;
+    margin: 4px;
+}
