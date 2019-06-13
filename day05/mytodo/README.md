@@ -41,10 +41,10 @@ typeorm entity:create -n MyTodo -d .\src\my-todo\entity
 
 1. 运行初始化select，结果加入队列中(可能有多行)
 2. 队列不为空时：
-    2a: 从队列中提取单行
-    2b: 将单行插入到递归表
-    2c：递归表（cte）中当做就刚插入的这一行(实际上可能已经插入了很多行了)，执行递归select（一般是操作非cte），结果加入队列中
-    2d：重复2开始
+    * 2a: 从队列中提取单行
+    * 2b: 将单行插入到递归表
+    * 2c：递归表（cte）中当做就刚插入的这一行(实际上可能已经插入了很多行了)，执行递归select（一般是操作非cte），结果加入队列中
+    * 2d：重复2开始
 3. 最终得到的递归表(cte)中是所有进入过队列的行。
 
 递归查询后代节点：
@@ -164,11 +164,15 @@ select id,parentid,title from myan
 ```
 会用到id的索引
 
-取descendents：按照上面秒速的算法取。
+取descendents：按照上面描述的算法取。
+
+```sql
 with recursive 	
     myan(id,parentid,title) as (
         select id,parentid,title from my_todo where parentid=x.id
         union all
         select my_todo.id,my_todo.parentid,my_todo.title from my_todo,myan where my_todo.parentid = myan.id)
 select id,parentid,title from myan
+```
+
 会用到parentid的索引
