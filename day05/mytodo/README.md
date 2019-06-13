@@ -49,6 +49,7 @@ typeorm entity:create -n MyTodo -d .\src\my-todo\entity
 
 递归查询后代节点：
 
+```sql
 WITH RECURSIVE
     my_cte(id,parentId) as (
         select id from my_todo where id = 给定的id   // 从my_todo找到指定的对象加入队列。
@@ -58,9 +59,11 @@ WITH RECURSIVE
             where my_todo.parentId = my_cte.id    // 把my_todo中所有父节点是my_cte当前节点的记录都加入队列（广度展开树）
     )
 select id, parentId from my_cte   // 把符合条件的记录提取出来
+```
 
 递归查询祖先节点：
 
+```sql
 WITH RECURSIVE
     my_cte(id,parentId) as (
         select id, parentId from my_todo where id = 给定的id  // 找到给定的id，
@@ -71,6 +74,7 @@ WITH RECURSIVE
             and my_todo.id = my_cte.parentid    // 找到父节点并加入队列。不能加limit，因为可能有多级父节点。
     )
 select id,parentId from my_cte
+```
 
 ### 索引是如何工作的
 
